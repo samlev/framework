@@ -1419,6 +1419,46 @@ class Validator implements ValidatorContract
     }
 
     /**
+     * Validate the date is before or on a given date.
+     *
+     * @param  string  $attribute
+     * @param  mixed   $value
+     * @param  array   $parameters
+     * @return bool
+     */
+    protected function validateUntil($attribute, $value, $parameters)
+    {
+        $this->requireParameterCount(1, $parameters, 'until');
+
+        if ($format = $this->getDateFormat($attribute)) {
+            return $this->validateUntilWithFormat($format, $value, $parameters);
+        }
+
+        if (! ($date = strtotime($parameters[0]))) {
+            $date = strtotime($this->getValue($parameters[0]));
+        }
+
+        $val = strtotime($value);
+
+        return ($val && $date) && ($val <= $date);
+    }
+
+    /**
+     * Validate the date is before a given date with a given format.
+     *
+     * @param  string  $format
+     * @param  mixed   $value
+     * @param  array   $parameters
+     * @return bool
+     */
+    protected function validateUntilWithFormat($format, $value, $parameters)
+    {
+        $param = $this->getValue($parameters[0]) ?: $parameters[0];
+
+        return $this->checkDateTimeOrder($format, $value, $param) || $this->checkDateTimeEqual($format, $value, $param);
+    }
+
+    /**
      * Validate the date is after a given date.
      *
      * @param  string  $attribute
@@ -1457,6 +1497,46 @@ class Validator implements ValidatorContract
     }
 
     /**
+     * Validate the date is after or on a given date.
+     *
+     * @param  string  $attribute
+     * @param  mixed   $value
+     * @param  array   $parameters
+     * @return bool
+     */
+    protected function validateFrom($attribute, $value, $parameters)
+    {
+        $this->requireParameterCount(1, $parameters, 'from');
+
+        if ($format = $this->getDateFormat($attribute)) {
+            return $this->validateFromWithFormat($format, $value, $parameters);
+        }
+
+        if (! ($date = strtotime($parameters[0]))) {
+            $date = strtotime($this->getValue($parameters[0]));
+        }
+
+        $val = strtotime($value);
+
+        return ($val && $date) && ($val >= $date);
+    }
+
+    /**
+     * Validate the date is after or on a given date with a given format.
+     *
+     * @param  string  $format
+     * @param  mixed   $value
+     * @param  array   $parameters
+     * @return bool
+     */
+    protected function validateFromWithFormat($format, $value, $parameters)
+    {
+        $param = $this->getValue($parameters[0]) ?: $parameters[0];
+
+        return $this->checkDateTimeOrder($format, $param, $value) || $this->checkDateTimeEqual($format, $param, $value);
+    }
+
+    /**
      * Given two date/time strings, check that one is after the other.
      *
      * @param  string  $format
@@ -1471,6 +1551,34 @@ class Validator implements ValidatorContract
         $after = $this->getDateTimeWithOptionalFormat($format, $after);
 
         return ($before && $after) && ($after > $before);
+    }
+
+    /**
+     * Given two date/time strings, check that one equals the other.
+     *
+     * @param  string  $format
+     * @param  string  $before
+     * @param  string  $after
+     * @return bool
+     */
+    protected function checkDateTimeEqual($format, $before, $after)
+    {
+        $before = $this->getDateTimeWithOptionalFormat($format, $before);
+
+        $after = $this->getDateTimeWithOptionalFormat($format, $after);
+
+        if ($before && $after) {
+            // Reformat again to get rid of any irregularities with different time formats,
+            // because createFromFormat fills in any parts that aren't set explicitly.
+            // DateTime::createFromFormat('Y-m-d', date('Y-m-d')) != DateTime('today')
+            $before = DateTime::createFromFormat($format, $before->format($format));
+
+            $after = DateTime::createFromFormat($format, $after->format($format));
+
+            return $before == $after;
+        }
+
+        return false;
     }
 
     /**
@@ -2006,6 +2114,20 @@ class Validator implements ValidatorContract
     }
 
     /**
+     * Replace all place-holders for the from rule.
+     *
+     * @param  string  $message
+     * @param  string  $attribute
+     * @param  string  $rule
+     * @param  array   $parameters
+     * @return string
+     */
+    protected function replaceFrom($message, $attribute, $rule, $parameters)
+    {
+        return $this->replaceBefore($message, $attribute, $rule, $parameters);
+    }
+
+    /**
      * Replace all place-holders for the after rule.
      *
      * @param  string  $message
@@ -2015,6 +2137,20 @@ class Validator implements ValidatorContract
      * @return string
      */
     protected function replaceAfter($message, $attribute, $rule, $parameters)
+    {
+        return $this->replaceBefore($message, $attribute, $rule, $parameters);
+    }
+
+    /**
+     * Replace all place-holders for the until rule.
+     *
+     * @param  string  $message
+     * @param  string  $attribute
+     * @param  string  $rule
+     * @param  array   $parameters
+     * @return string
+     */
+    protected function replaceUntil($message, $attribute, $rule, $parameters)
     {
         return $this->replaceBefore($message, $attribute, $rule, $parameters);
     }

@@ -1296,6 +1296,130 @@ class ValidationValidatorTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($v->fails());
     }
 
+    public function testUntilAndFrom()
+    {
+        date_default_timezone_set('UTC');
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['x' => '2000-01-01'], ['x' => 'Until:2012-01-01']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => '2012-01-01'], ['x' => 'From:2000-01-01']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => '2012-01-01'], ['x' => 'Until:2012-01-01']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => '2012-01-01'], ['x' => 'From:2012-01-01']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => '2012-01-01'], ['x' => 'Until:2000-01-01']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['x' => '2000-01-01'], ['x' => 'From:2012-01-01']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '2012-01-01', 'ends' => '2013-01-01'], ['start' => 'From:2000-01-01', 'ends' => 'From:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '2012-01-01', 'ends' => '2012-01-01'], ['start' => 'From:2012-01-01', 'ends' => 'From:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '2012-01-01', 'ends' => '2000-01-01'], ['start' => 'From:2000-01-01', 'ends' => 'From:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '2000-01-01', 'ends' => '2012-01-01'], ['start' => 'Until:2013-01-01', 'ends' => 'From:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '2012-01-01', 'ends' => '2012-01-01'], ['start' => 'Until:2012-01-01', 'ends' => 'Until:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '2000-01-01', 'ends' => '2012-01-01'], ['start' => 'Until:2000-01-01', 'ends' => 'Until:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '2012-01-01', 'ends' => '2013-01-01'], ['start' => 'Until:ends', 'ends' => 'From:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '2012-01-01', 'ends' => '2012-01-01'], ['start' => 'Until:ends', 'ends' => 'From:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '2012-01-01', 'ends' => '2000-01-01'], ['start' => 'Until:ends', 'ends' => 'From:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['x' => date('Y-m-d')], ['x' => 'from:yesterday|until:tomorrow']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => date('Y-m-d')], ['x' => 'from:today|until:today']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => date('Y-m-d')], ['x' => 'from:tomorrow|until:yesterday']);
+        $this->assertTrue($v->fails());
+    }
+
+    public function testUntilAndFromWithFormat()
+    {
+        date_default_timezone_set('UTC');
+        $trans = $this->getRealTranslator();
+        $v = new Validator($trans, ['x' => '31/12/2000'], ['x' => 'until:31/02/2012']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['x' => '31/12/2000'], ['x' => 'date_format:d/m/Y|until:31/12/2012']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => '31/12/2012'], ['x' => 'date_format:d/m/Y|until:31/12/2012']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => '31/12/2012'], ['x' => 'from:31/12/2000']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['x' => '31/12/2012'], ['x' => 'date_format:d/m/Y|from:31/12/2000']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => '31/12/2012'], ['x' => 'date_format:d/m/Y|from:31/12/2012']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2013'], ['start' => 'from:01/01/2000', 'ends' => 'from:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2013'], ['start' => 'date_format:d/m/Y|from:31/12/2000', 'ends' => 'date_format:d/m/Y|from:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '31/12/2013', 'ends' => '31/12/2013'], ['start' => 'date_format:d/m/Y|from:31/12/2013', 'ends' => 'date_format:d/m/Y|from:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2000'], ['start' => 'from:31/12/2000', 'ends' => 'from:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2000'], ['start' => 'date_format:d/m/Y|from:31/12/2000', 'ends' => 'date_format:d/m/Y|from:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2013'], ['start' => 'until:ends', 'ends' => 'from:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2013'], ['start' => 'date_format:d/m/Y|until:ends', 'ends' => 'date_format:d/m/Y|from:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '31/12/2013', 'ends' => '31/12/2013'], ['start' => 'date_format:d/m/Y|until:ends', 'ends' => 'date_format:d/m/Y|from:start']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2000'], ['start' => 'until:ends', 'ends' => 'from:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => '31/12/2012', 'ends' => '31/12/2000'], ['start' => 'date_format:d/m/Y|until:ends', 'ends' => 'date_format:d/m/Y|from:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['start' => 'invalid', 'ends' => 'invalid'], ['start' => 'date_format:d/m/Y|until:ends', 'ends' => 'date_format:d/m/Y|from:start']);
+        $this->assertTrue($v->fails());
+
+        $v = new Validator($trans, ['x' => date('d/m/Y')], ['x' => 'date_format:d/m/Y|from:yesterday|until:tomorrow']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => date('d/m/Y')], ['x' => 'date_format:d/m/Y|from:today|until:today']);
+        $this->assertTrue($v->passes());
+
+        $v = new Validator($trans, ['x' => date('d/m/Y')], ['x' => 'date_format:d/m/Y|from:tomorrow|until:yesterday']);
+        $this->assertTrue($v->fails());
+    }
+
     public function testSometimesAddingRules()
     {
         $trans = $this->getRealTranslator();
