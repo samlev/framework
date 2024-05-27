@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseEloquentInverseRelationHasManyTest extends TestCase
@@ -34,14 +35,14 @@ class DatabaseEloquentInverseRelationHasManyTest extends TestCase
 
     protected function createSchema()
     {
-        $this->schema()->create('test_parent', function ($table) {
+        $this->schema()->create('test_users', function ($table) {
             $table->increments('id');
             $table->timestamps();
         });
 
-        $this->schema()->create('test_child', function ($table) {
+        $this->schema()->create('test_posts', function ($table) {
             $table->increments('id');
-            $table->foreignId('parent_id');
+            $table->foreignId('user_id');
             $table->timestamps();
         });
     }
@@ -53,102 +54,156 @@ class DatabaseEloquentInverseRelationHasManyTest extends TestCase
      */
     protected function tearDown(): void
     {
-        $this->schema()->drop('test_parent');
-        $this->schema()->drop('test_child');
+        $this->schema()->drop('test_users');
+        $this->schema()->drop('test_posts');
     }
 
     public function testHasManyInverseRelationIsProperlySetToParentWhenLazyLoaded()
     {
-        HasManyInverseParentModel::factory(3)->create();
-        $models = HasManyInverseParentModel::all();
+        HasManyInverseUserModel::factory()->count(3)->withPosts()->create();
+        $users = HasManyInverseUserModel::all();
 
-        foreach ($models as $parent) {
-            $this->assertFalse($parent->relationLoaded('children'));
-            foreach ($parent->children as $child) {
-                $this->assertTrue($child->relationLoaded('parent'));
-                $this->assertSame($parent, $child->parent);
+        foreach ($users as $user) {
+            $this->assertFalse($user->relationLoaded('posts'));
+            foreach ($user->posts as $post) {
+                $this->assertTrue($post->relationLoaded('user'));
+                $this->assertSame($user, $post->user);
             }
         }
     }
 
     public function testHasManyInverseRelationIsProperlySetToParentWhenEagerLoaded()
     {
-        HasManyInverseParentModel::factory(3)->create();
+        HasManyInverseUserModel::factory()->count(3)->withPosts()->create();
+        $users = HasManyInverseUserModel::with('posts')->get();
 
-        $models = HasManyInverseParentModel::with('children')->get();
+        foreach ($users as $user) {
+            $posts = $user->getRelation('posts');
 
-        foreach ($models as $parent) {
-            foreach ($parent->children as $child) {
-                $this->assertTrue($child->relationLoaded('parent'));
-                $this->assertSame($parent, $child->parent);
+            foreach ($posts as $post) {
+                $this->assertTrue($post->relationLoaded('user'));
+                $this->assertSame($user, $post->user);
             }
         }
     }
 
+    public function testHasLatestOfManyInverseRelationIsProperlySetToParentWhenLazyLoaded()
+    {
+        HasManyInverseUserModel::factory()->count(3)->withPosts()->create();
+        $users = HasManyInverseUserModel::all();
+
+        foreach ($users as $user) {
+            $this->assertFalse($user->relationLoaded('lastPost'));
+            $post = $user->lastPost;
+
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
+        }
+    }
+
+    public function testHasLatestOfManyInverseRelationIsProperlySetToParentWhenEagerLoaded()
+    {
+        HasManyInverseUserModel::factory()->count(3)->withPosts()->create();
+        $users = HasManyInverseUserModel::with('lastPost')->get();
+
+        foreach ($users as $user) {
+            $post = $user->getRelation('lastPost');
+
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
+        }
+    }
+
+    public function testOneOfManyInverseRelationIsProperlySetToParentWhenLazyLoaded()
+    {
+        HasManyInverseUserModel::factory()->count(3)->withPosts()->create();
+        $users = HasManyInverseUserModel::all();
+
+        foreach ($users as $user) {
+            $this->assertFalse($user->relationLoaded('firstPost'));
+            $post = $user->firstPost;
+
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
+        }
+    }
+
+    public function testOneOfManyInverseRelationIsProperlySetToParentWhenEagerLoaded()
+    {
+        HasManyInverseUserModel::factory()->count(3)->withPosts()->create();
+        $users = HasManyInverseUserModel::with('firstPost')->get();
+
+        foreach ($users as $user) {
+            $post = $user->getRelation('firstPost');
+
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
+        }
+    }
     public function testHasManyInverseRelationIsProperlySetToParentWhenMakingMany()
     {
-        $parent = HasManyInverseParentModel::create();
+        $user = HasManyInverseUserModel::create();
 
-        $children = $parent->children()->makeMany(array_fill(0, 3, []));
+        $posts = $user->posts()->makeMany(array_fill(0, 3, []));
 
-        foreach ($children as $child) {
-            $this->assertTrue($child->relationLoaded('parent'));
-            $this->assertSame($parent, $child->parent);
+        foreach ($posts as $post) {
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
         }
     }
 
     public function testHasManyInverseRelationIsProperlySetToParentWhenCreatingMany()
     {
-        $parent = HasManyInverseParentModel::create();
+        $user = HasManyInverseUserModel::create();
 
-        $children = $parent->children()->createMany(array_fill(0, 3, []));
+        $posts = $user->posts()->createMany(array_fill(0, 3, []));
 
-        foreach ($children as $child) {
-            $this->assertTrue($child->relationLoaded('parent'));
-            $this->assertSame($parent, $child->parent);
+        foreach ($posts as $post) {
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
         }
     }
 
     public function testHasManyInverseRelationIsProperlySetToParentWhenCreatingManyQuietly()
     {
-        $parent = HasManyInverseParentModel::create();
+        $user = HasManyInverseUserModel::create();
 
-        $children = $parent->children()->createManyQuietly(array_fill(0, 3, []));
+        $posts = $user->posts()->createManyQuietly(array_fill(0, 3, []));
 
-        foreach ($children as $child) {
-            $this->assertTrue($child->relationLoaded('parent'));
-            $this->assertSame($parent, $child->parent);
+        foreach ($posts as $post) {
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
         }
     }
 
     public function testHasManyInverseRelationIsProperlySetToParentWhenSavingMany()
     {
-        $parent = HasManyInverseParentModel::create();
+        $user = HasManyInverseUserModel::create();
 
-        $children = array_fill(0, 3, new HasManyInverseChildModel);
+        $posts = array_fill(0, 3, new HasManyInversePostModel);
 
-        $parent->children()->saveMany($children);
+        $user->posts()->saveMany($posts);
 
-        foreach ($children as $child) {
-            $this->assertTrue($child->relationLoaded('parent'));
-            $this->assertSame($parent, $child->parent);
+        foreach ($posts as $post) {
+            $this->assertTrue($post->relationLoaded('user'));
+            $this->assertSame($user, $post->user);
         }
     }
 
     public function testHasManyInverseRelationIsProperlySetToParentWhenUpdatingMany()
     {
-        $parent = HasManyInverseParentModel::create();
+        $user = HasManyInverseUserModel::create();
 
-        $children = HasManyInverseChildModel::factory()->count(3)->create();
+        $posts = HasManyInversePostModel::factory()->count(3)->create();
 
-        foreach ($children as $child) {
-            $this->assertTrue($parent->isNot($child->parent));
+        foreach ($posts as $post) {
+            $this->assertTrue($user->isNot($post->user));
         }
 
-        $parent->children()->saveMany($children);
+        $user->posts()->saveMany($posts);
 
-        foreach ($children as $child) {
-            $this->assertSame($parent, $child->parent);
+        foreach ($posts as $post) {
+            $this->assertSame($user, $post->user);
         }
     }
 
@@ -177,60 +232,75 @@ class DatabaseEloquentInverseRelationHasManyTest extends TestCase
     }
 }
 
-class HasManyInverseParentModel extends Model
+class HasManyInverseUserModel extends Model
 {
     use HasFactory;
 
-    protected $table = 'test_parent';
+    protected $table = 'test_users';
     protected $fillable = ['id'];
 
     protected static function newFactory()
     {
-        return new HasManyInverseParentModelFactory();
+        return new HasManyInverseUserModelFactory();
     }
 
-    public function children(): HasMany
+    public function posts(): HasMany
     {
-        return $this->hasMany(HasManyInverseChildModel::class, 'parent_id')->inverse('parent');
+        return $this->hasMany(HasManyInversePostModel::class, 'user_id')->inverse('user');
+    }
+
+    public function lastPost(): HasOne
+    {
+        return $this->hasOne(HasManyInversePostModel::class, 'user_id')->latestOfMany()->inverse('user');
+    }
+
+    public function firstPost(): HasOne
+    {
+        return $this->posts()->one();
     }
 }
 
-class HasManyInverseParentModelFactory extends Factory
+class HasManyInverseUserModelFactory extends Factory
 {
-    protected $model = HasManyInverseParentModel::class;
+    protected $model = HasManyInverseUserModel::class;
     public function definition()
     {
-        $this->has(HasManyInverseChildModel::factory()->count(3));
-
         return [];
+    }
+
+    public function withPosts(int $count = 3)
+    {
+        return $this->afterCreating(function (HasManyInverseUserModel $model) use ($count) {
+            HasManyInversePostModel::factory()->recycle($model)->count($count)->create();
+        });
     }
 }
 
-class HasManyInverseChildModel extends Model
+class HasManyInversePostModel extends Model
 {
     use HasFactory;
 
     protected static function newFactory()
     {
-        return new HasManyInverseChildModelFactory();
+        return new HasManyInversePostModelFactory();
     }
 
-    protected $table = 'test_child';
-    protected $fillable = ['id', 'parent_id'];
+    protected $table = 'test_posts';
+    protected $fillable = ['id', 'user_id'];
 
-    public function parent(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(HasManyInverseParentModel::class, 'parent_id');
+        return $this->belongsTo(HasManyInverseUserModel::class, 'user_id');
     }
 }
 
-class HasManyInverseChildModelFactory extends Factory
+class HasManyInversePostModelFactory extends Factory
 {
-    protected $model = HasManyInverseChildModel::class;
+    protected $model = HasManyInversePostModel::class;
     public function definition()
     {
         return [
-            'parent_id' => HasManyInverseParentModel::factory(),
+            'user_id' => HasManyInverseUserModel::factory(),
         ];
     }
 }
