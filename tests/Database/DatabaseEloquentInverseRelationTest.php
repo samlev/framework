@@ -109,11 +109,13 @@ class DatabaseEloquentInverseRelationTest extends TestCase
     }
 }
 
-class HasInverseRelationParentStub extends Model {
+class HasInverseRelationParentStub extends Model
+{
     protected static $unguarded = true;
 }
 
-class HasInverseRelationRelatedStub extends Model {
+class HasInverseRelationRelatedStub extends Model
+{
     protected static $unguarded = true;
 }
 
@@ -122,9 +124,28 @@ class HasInverseRelationStub extends Relation
     use SupportsInverseRelations;
 
     // None of these methods will actually be called - they're just needed to fill out `Relation`
-    public function match(array $models, Collection $results, $relation) {return $models;}
-    public function initRelation(array $models, $relation) {return $models;}
-    public function getResults(){return $this->query->get();}
-    public function addConstraints() {}
-    public function addEagerConstraints(array $models) {}
+    public function match(array $models, Collection $results, $relation)
+    {
+        return $models;
+    }
+
+    public function initRelation(array $models, $relation)
+    {
+        return $models;
+    }
+
+    public function getResults()
+    {
+        return $this->query->get();
+    }
+
+    public function addConstraints()
+    {
+        //
+    }
+
+    public function addEagerConstraints(array $models)
+    {
+        //
+    }
 }

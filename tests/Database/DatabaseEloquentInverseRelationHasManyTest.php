@@ -140,6 +140,7 @@ class DatabaseEloquentInverseRelationHasManyTest extends TestCase
             $this->assertSame($user, $post->user);
         }
     }
+
     public function testHasManyInverseRelationIsProperlySetToParentWhenMakingMany()
     {
         $user = HasManyInverseUserModel::create();
@@ -263,6 +264,7 @@ class HasManyInverseUserModel extends Model
 class HasManyInverseUserModelFactory extends Factory
 {
     protected $model = HasManyInverseUserModel::class;
+
     public function definition()
     {
         return [];
@@ -286,6 +288,7 @@ class HasManyInversePostModel extends Model
     }
 
     protected $table = 'test_posts';
+
     protected $fillable = ['id', 'user_id'];
 
     public function user(): BelongsTo
@@ -297,6 +300,7 @@ class HasManyInversePostModel extends Model
 class HasManyInversePostModelFactory extends Factory
 {
     protected $model = HasManyInversePostModel::class;
+
     public function definition()
     {
         return [

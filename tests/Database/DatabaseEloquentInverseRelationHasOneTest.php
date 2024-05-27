@@ -191,6 +191,7 @@ class HasOneInverseParentModel extends Model
     use HasFactory;
 
     protected $table = 'test_parent';
+
     protected $fillable = ['id'];
 
     protected static function newFactory()
@@ -207,6 +208,7 @@ class HasOneInverseParentModel extends Model
 class HasOneInverseParentModelFactory extends Factory
 {
     protected $model = HasOneInverseParentModel::class;
+
     public function definition()
     {
         return [];
@@ -217,13 +219,14 @@ class HasOneInverseChildModel extends Model
 {
     use HasFactory;
 
+    protected $table = 'test_child';
+
+    protected $fillable = ['id', 'parent_id'];
+
     protected static function newFactory()
     {
         return new HasOneInverseChildModelFactory();
     }
-
-    protected $table = 'test_child';
-    protected $fillable = ['id', 'parent_id'];
 
     public function parent(): BelongsTo
     {
@@ -234,6 +237,7 @@ class HasOneInverseChildModel extends Model
 class HasOneInverseChildModelFactory extends Factory
 {
     protected $model = HasOneInverseChildModel::class;
+
     public function definition()
     {
         return [

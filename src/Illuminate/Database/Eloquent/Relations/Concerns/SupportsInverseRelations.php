@@ -9,7 +9,7 @@ trait SupportsInverseRelations
     protected string|null $inverseRelationship = null;
 
     /**
-     * Gets the name of the inverse relationship
+     * Gets the name of the inverse relationship.
      *
      * @return string|null
      */
@@ -19,7 +19,7 @@ trait SupportsInverseRelations
     }
 
     /**
-     * Links the related models back to the parent after the query has run
+     * Links the related models back to the parent after the query has run.
      *
      * @param  string  $relation
      * @return $this

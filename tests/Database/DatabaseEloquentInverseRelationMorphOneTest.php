@@ -206,6 +206,7 @@ class MorphOneInversePostModel extends Model
 class MorphOneInversePostModelFactory extends Factory
 {
     protected $model = MorphOneInversePostModel::class;
+
     public function definition()
     {
         return [];
@@ -216,13 +217,13 @@ class MorphOneInverseImageModel extends Model
 {
     use HasFactory;
 
+    protected $table = 'test_images';
+    protected $fillable = ['id', 'imageable_type', 'imageable_id'];
+
     protected static function newFactory()
     {
         return new MorphOneInverseImageModelFactory();
     }
-
-    protected $table = 'test_images';
-    protected $fillable = ['id', 'imageable_type', 'imageable_id'];
 
     public function imageable(): MorphTo
     {
@@ -233,6 +234,7 @@ class MorphOneInverseImageModel extends Model
 class MorphOneInverseImageModelFactory extends Factory
 {
     protected $model = MorphOneInverseImageModel::class;
+
     public function definition()
     {
         return [

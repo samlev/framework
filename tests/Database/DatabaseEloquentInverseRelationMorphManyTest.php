@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -282,13 +281,13 @@ class MorphManyInverseCommentModel extends Model
 {
     use HasFactory;
 
+    protected $table = 'test_comments';
+    protected $fillable = ['id', 'commentable_type', 'commentable_id'];
+
     protected static function newFactory()
     {
         return new MorphManyInverseCommentModelFactory();
     }
-
-    protected $table = 'test_comments';
-    protected $fillable = ['id', 'commentable_type', 'commentable_id'];
 
     public function commentable(): MorphTo
     {
@@ -299,6 +298,7 @@ class MorphManyInverseCommentModel extends Model
 class MorphManyInverseCommentModelFactory extends Factory
 {
     protected $model = MorphManyInverseCommentModel::class;
+
     public function definition()
     {
         return [
