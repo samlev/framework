@@ -3,6 +3,7 @@
 namespace Illuminate\Database\Eloquent\Relations\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\RelationNotFoundException;
 
 trait SupportsInverseRelations
 {
@@ -26,6 +27,10 @@ trait SupportsInverseRelations
      */
     public function inverse(string $relation)
     {
+        if (! $this->getModel()->isRelation($relation)) {
+            throw RelationNotFoundException::make($this->getModel(), $relation);
+        }
+
         if ($this->inverseRelationship === null && $relation) {
             $this->query->afterQuery(function ($result) {
                 return $this->inverseRelationship
@@ -35,6 +40,18 @@ trait SupportsInverseRelations
         }
 
         $this->inverseRelationship = $relation;
+
+        return $this;
+    }
+
+    /**
+     * Removes the inverse relationship for this query.
+     *
+     * @return $this
+     */
+    public function withoutInverse()
+    {
+        $this->inverseRelationship = null;
 
         return $this;
     }

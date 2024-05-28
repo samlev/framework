@@ -282,14 +282,13 @@ class HasManyInversePostModel extends Model
 {
     use HasFactory;
 
+    protected $table = 'test_posts';
+    protected $fillable = ['id', 'user_id'];
+
     protected static function newFactory()
     {
         return new HasManyInversePostModelFactory();
     }
-
-    protected $table = 'test_posts';
-
-    protected $fillable = ['id', 'user_id'];
 
     public function user(): BelongsTo
     {
