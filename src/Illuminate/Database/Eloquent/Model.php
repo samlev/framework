@@ -1084,8 +1084,12 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     public function push()
     {
-        return $this->once(function () {
-            if (! $this->save()) {
+        if ($this->wasCalledRecursively()) {
+            return true;
+        }
+
+        try {
+            if (!$this->save()) {
                 return false;
             }
 
@@ -1097,14 +1101,16 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
                     ? $models->all() : [$models];
 
                 foreach (array_filter($models) as $model) {
-                    if (! $model->push()) {
+                    if (!$model->push()) {
                         return false;
                     }
                 }
             }
 
             return true;
-        }, true);
+        } finally {
+            $this->releaseRecursiveLock();
+        }
     }
 
     /**
@@ -1649,7 +1655,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     {
         return $this->once(
             fn () => array_merge($this->attributesToArray(), $this->relationsToArray()),
-            $this->attributesToArray(),
+            $this->attributesToArray()
         );
     }
 
@@ -1997,11 +2003,15 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     public function getQueueableRelations()
     {
-        return $this->once(function () {
+        if ($this->wasCalledRecursively()) {
+            return [];
+        }
+
+        try {
             $relations = [];
 
             foreach ($this->getRelations() as $key => $relation) {
-                if (! method_exists($this, $key)) {
+                if (!method_exists($this, $key)) {
                     continue;
                 }
 
@@ -2009,19 +2019,21 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
 
                 if ($relation instanceof QueueableCollection) {
                     foreach ($relation->getQueueableRelations() as $collectionValue) {
-                        $relations[] = $key.'.'.$collectionValue;
+                        $relations[] = $key . '.' . $collectionValue;
                     }
                 }
 
                 if ($relation instanceof QueueableEntity) {
                     foreach ($relation->getQueueableRelations() as $entityValue) {
-                        $relations[] = $key.'.'.$entityValue;
+                        $relations[] = $key . '.' . $entityValue;
                     }
                 }
             }
 
             return array_unique($relations);
-        }, []);
+        } finally {
+            $this->releaseRecursiveLock();
+        }
     }
 
     /**

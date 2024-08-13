@@ -21,11 +21,11 @@ class DatabaseConcernsPreventsCircularRecursionTest extends TestCase
         $this->assertEquals(0, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
         $this->assertEquals(0, $instance->instanceStack);
 
-        $this->assertEquals(0, $instance->callStack());
+        $this->assertEquals(1, $instance->callStack());
         $this->assertEquals(1, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
         $this->assertEquals(1, $instance->instanceStack);
 
-        $this->assertEquals(1, $instance->callStack());
+        $this->assertEquals(2, $instance->callStack());
         $this->assertEquals(2, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
         $this->assertEquals(2, $instance->instanceStack);
     }

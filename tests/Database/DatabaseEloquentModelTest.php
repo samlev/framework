@@ -1259,14 +1259,14 @@ class DatabaseEloquentModelTest extends TestCase
         $lastId = $parent->id;
         $parent->setRelation('self', $parent);
 
-        $children = new Collection();
+        $children = [];
         for ($count = 0; $count < 2; $count++) {
             $child = new EloquentModelWithRecursiveRelationshipsStub(['id' => ++$lastId, 'parent_id' => $parent->id]);
             $child->setRelation('parent', $parent);
             $child->setRelation('self', $child);
-            $children->push($child);
+            $children[] = $child;
         }
-        $parent->setRelation('children', $children);
+        $parent->setRelation('children', new Collection($children));
 
         try {
             $this->assertSame(
@@ -1302,14 +1302,14 @@ class DatabaseEloquentModelTest extends TestCase
         $lastId = $parent->id;
         $parent->setRelation('self', $parent);
 
-        $children = new Collection();
+        $children = [];
         for ($count = 0; $count < 2; $count++) {
             $child = new EloquentModelWithRecursiveRelationshipsStub(['id' => ++$lastId, 'parent_id' => $parent->id]);
             $child->setRelation('parent', $parent);
             $child->setRelation('self', $child);
-            $children->push($child);
+            $children[] = $child;
         }
-        $parent->setRelation('children', $children);
+        $parent->setRelation('children', new Collection($children));
 
         try {
             $this->assertSame(
