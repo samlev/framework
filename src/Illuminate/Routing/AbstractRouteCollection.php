@@ -175,7 +175,8 @@ abstract class AbstractRouteCollection implements Countable, IteratorAggregate, 
                 'bindingFields' => $route->bindingFields(),
                 'lockSeconds' => $route->locksFor(),
                 'waitSeconds' => $route->waitsFor(),
-                'withTrashed' => $route->allowsTrashedBindings(),
+                'withTrashed' => $route->getAllowedTrashedBindings(),
+                'bindingCallbacks' => $route->getBindingCallbacks(),
             ];
         }
 

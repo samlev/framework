@@ -103,6 +103,13 @@ class Route
     protected $withTrashedBindings = false;
 
     /**
+     * Binding callbacks to use for route model binding.
+     *
+     * @var array<string, callable[]>
+     */
+    protected $bindingCallbacks = [];
+
+    /**
      * Indicates the maximum number of seconds the route should acquire a session lock for.
      *
      * @var int|null
@@ -594,22 +601,73 @@ class Route
     /**
      * Allow "trashed" models to be retrieved when resolving implicit model bindings for this route.
      *
-     * @param  bool  $withTrashed
+     * @param  bool|string[]  $withTrashed
      * @return $this
      */
     public function withTrashed($withTrashed = true)
     {
-        $this->withTrashedBindings = $withTrashed;
+        $this->withTrashedBindings = (($withTrashed && is_array($withTrashed))
+            ? array_filter(array_unique($withTrashed), fn ($parameter) => is_string($parameter) && $parameter)
+            : (bool) $withTrashed) ?: false;
 
         return $this;
     }
 
     /**
+     * Add a binding callback to the route.
+     *
+     * @param  string  $parameter
+     * @param  callable  $callback
+     * @return $this
+     */
+    public function withBindingCallback($parameter, $callback)
+    {
+        $this->bindingCallbacks[$parameter] ??= [];
+        $this->bindingCallbacks[$parameter][] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Set the binding callbacks for the route.
+     *
+     * @param  array<string, callable[]>  $callbacks
+     * @return $this
+     */
+    public function withBindingCallbacks($callbacks)
+    {
+        $this->bindingCallbacks = $callbacks;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, callable[]>
+     */
+    public function getBindingCallbacks()
+    {
+        return $this->bindingCallbacks;
+    }
+
+    /**
      * Determines if the route allows "trashed" models to be retrieved when resolving implicit model bindings.
      *
+     * @param  string|null  $parameter
      * @return bool
      */
-    public function allowsTrashedBindings()
+    public function allowsTrashedBindings($parameter = null)
+    {
+        return (is_array($this->withTrashedBindings) && $parameter)
+            ? in_array($parameter, $this->withTrashedBindings)
+            : (bool) $this->withTrashedBindings;
+    }
+
+    /**
+     * Gets the "trashed" models allowed to be retrieved when resolving implicit model bindings.
+     *
+     * @return bool|string[]
+     */
+    public function getAllowedTrashedBindings()
     {
         return $this->withTrashedBindings;
     }

@@ -42,7 +42,7 @@ class ImplicitRouteBinding
 
             $parent = $route->parentOfParameter($parameterName);
 
-            $routeBindingMethod = $route->allowsTrashedBindings() && in_array(SoftDeletes::class, class_uses_recursive($instance))
+            $routeBindingMethod = $route->allowsTrashedBindings($parameterName) && in_array(SoftDeletes::class, class_uses_recursive($instance))
                         ? 'resolveSoftDeletableRouteBinding'
                         : 'resolveRouteBinding';
 
