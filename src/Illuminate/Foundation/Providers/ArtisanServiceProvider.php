@@ -81,6 +81,7 @@ use Illuminate\Foundation\Console\RouteListCommand;
 use Illuminate\Foundation\Console\RuleMakeCommand;
 use Illuminate\Foundation\Console\ScopeMakeCommand;
 use Illuminate\Foundation\Console\ServeCommand;
+use Illuminate\Foundation\Console\ServiceMakeCommand;
 use Illuminate\Foundation\Console\StorageLinkCommand;
 use Illuminate\Foundation\Console\StorageUnlinkCommand;
 use Illuminate\Foundation\Console\StubPublishCommand;
@@ -233,6 +234,7 @@ class ArtisanServiceProvider extends ServiceProvider implements DeferrableProvid
         'SeederMake' => SeederMakeCommand::class,
         'SessionTable' => SessionTableCommand::class,
         'Serve' => ServeCommand::class,
+        'ServiceMake' => ServiceMakeCommand::class,
         'StubPublish' => StubPublishCommand::class,
         'TestMake' => TestMakeCommand::class,
         'TraitMake' => TraitMakeCommand::class,

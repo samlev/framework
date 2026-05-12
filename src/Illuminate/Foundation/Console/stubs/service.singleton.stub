@@ -1,0 +1,20 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Container\Attributes\Config;
+use Illuminate\Container\Attributes\Give;
+use Illuminate\Container\Attributes\Singleton;
+
+#[Singleton]
+class {{ class }}
+{
+    /**
+     * Create a new service instance.
+     */
+    public function __construct(
+        //
+    ) {
+        //
+    }
+}
